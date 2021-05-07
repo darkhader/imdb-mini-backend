@@ -2,6 +2,7 @@ const express = require('express');
 const MovieRouter = express.Router();
 const MovieModel = require('../models/movieModel');
 const ActorModel = require('../models/actorModel');
+var request = require('request');
 // Middleware
 var mongoose = require('mongoose');
 
@@ -12,38 +13,51 @@ MovieRouter.get("/", async (req, res) => {
 	var perPage = 8
 	var page = req.query.page || 1;
 	var sort = req.query.sort || 1;
+	// const moviesOG = await MovieModel.find({});
+	// moviesOG.forEach(function (item) {
+	// 	if(item.title.slice(-1) === " "){
+	// 		console.log("🚀 ~ file: movieRouter.js ~ line 19 ~ item", item)
+	// 		item.title = item.title.trim();
+	// 		item.save();
+
+	// 	}
+
+	// })
+
+	// const movieRecommend = await MovieModel.find({ "title": { $in: ["10,000 BC "] } });
+	// console.log("movieRecommend", movieRecommend)
 	try {
 
 		if (sort == 1) {
-			const movies = await MovieModel.find({ "title" : { $ne : "" }})
+			const movies = await MovieModel.find({ "title": { $ne: "" } })
 				.skip(perPage * (page - 1))
 				.limit(perPage).sort([['title', 1]]);
 
-			const total = await MovieModel.count({ "title" : { $ne : "" }});
+			const total = await MovieModel.count({ "title": { $ne: "" } });
 			res.json({ success: 1, movies, total });
 		} else if (sort == 2) {
-			const movies = await MovieModel.find({ "title" : { $ne : "" }})
+			const movies = await MovieModel.find({ "title": { $ne: "" } })
 				.skip(perPage * (page - 1))
 				.limit(perPage).sort([['year', 1]]);
 
 
-			const total = await MovieModel.count({ "title" : { $ne : "" }});
+			const total = await MovieModel.count({ "title": { $ne: "" } });
 			res.json({ success: 1, movies, total });
 		} else if (sort == 3) {
-			const movies = await MovieModel.find({ "title" : { $ne : "" }})
+			const movies = await MovieModel.find({ "title": { $ne: "" } })
 				.skip(perPage * (page - 1))
 				.limit(perPage).sort([["luotlike", -1]]);
 
 
-			const total = await MovieModel.count({ "title" : { $ne : "" }});
+			const total = await MovieModel.count({ "title": { $ne: "" } });
 			res.json({ success: 1, movies, total });
 		} else if (sort == 4) {
-			const movies = await MovieModel.find({ "title" : { $ne : "" }})
+			const movies = await MovieModel.find({ "title": { $ne: "" } })
 				.skip(perPage * (page - 1))
 				.limit(perPage).sort({ date: -1 });
 
 
-			const total = await MovieModel.count({ "title" : { $ne : "" }});
+			const total = await MovieModel.count({ "title": { $ne: "" } });
 			res.json({ success: 1, movies, total });
 		}
 	} catch (error) {
@@ -69,7 +83,31 @@ MovieRouter.get("/:id", async (req, res) => {
 					}
 				});
 			if (!movieFound) res.status(404).json({ success: 0, message: "Not found!" })
-			else res.json({ success: 1, movie: movieFound });
+			else {
+				var options = {
+					'method': 'POST',
+					'url': `http://ai.imdb-mini.xyz/api`,
+					'headers': {
+					},
+					formData: {
+						'title': movieFound.title
+					}
+				};
+				request(options, async function (error, response) {
+					console.log("🚀 ~ file: movieRouter.js ~ line 93 ~ response", response.body)
+					if (error) console.log("error", error);
+					else {
+						if (response.body !== "[]") {
+							const movieRecommend = await MovieModel.find({ "title": { $in: JSON.parse(response.body) } });
+							res.json({ success: 1, movie: movieFound, movieRecommend: movieRecommend });
+						}
+						else {
+							res.json({ success: 1, movie: movieFound, movieRecommend: [] });
+						}
+
+					}
+				});
+			}
 		}
 
 	} catch (error) {
