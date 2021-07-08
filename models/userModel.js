@@ -8,6 +8,7 @@ const UserSchema = new Schema({
 	avatar: { type: String },
 	intro: { type: String },
 	like: [{ type: Schema.Types.ObjectId, ref: "movie"}],
+	movieLike: [{ type: String}],
 	review: [{ type: Schema.Types.ObjectId, ref: "review"}]
 
 });

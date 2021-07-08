@@ -12,6 +12,7 @@ const movieSchema = new Schema({
 		type: Date,
 		default: Date.now
 	},
+	movieLike: [{ type: String}],
     like:[{type: Schema.Types.ObjectId, ref: "User"}],
     review: [{type: Schema.Types.ObjectId, ref: "review"}],
     actor: [{type: Schema.Types.ObjectId, ref: "actor"}]

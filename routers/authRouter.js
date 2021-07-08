@@ -13,6 +13,7 @@ AuthRouter.get("/", (req, res) => {
 })
 AuthRouter.post("/login", async (req, res) => {
     const { email, password } = req.body;
+
 	try {
 		let userFound = await UserModel.findOne({ email });
         console.log(userFound)
